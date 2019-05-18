@@ -8,4 +8,4 @@ Displays HTML content on screen, only drawback is that 'position:absolute' doesn
 You need to specity `<meta http-equiv="X-UA-Compatible" content="IE=edge">` otherwise transparency won't work.
 
 Result:
-<img src="https://i.imgur.com/Z7nM6jc.png">
+<img src="https://i.imgur.com/bsv49JH.png">
