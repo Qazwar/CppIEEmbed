@@ -49,13 +49,6 @@ void InitD3D(HWND hWnd)
 {
 	//init win hook
 
-	//_hookKb = SetWindowsHookEx(WH_MOUSE_LL, HookCallbackKb, NULL, NULL);
-	char msg[124];
-	//sprintf_s(msg, 124, "ret: %p\n", _hookKb);
-	//OutputDebugStringA(msg);
-	// create a struct to hold information about the swap chain
-
-
 	DXGI_SWAP_CHAIN_DESC scd;
 
 	// clear out the struct for use
@@ -88,12 +81,6 @@ void InitD3D(HWND hWnd)
 		&devcon);
 
 
-	//char msg[124];
-	//wsprintfA(msg, "%p", *(ULONG_PTR*)swapchain - (ULONG_PTR)GetModuleHandleA("dxgi.dll"));
-	//MessageBoxA(0, msg, msg, 0);
-	//try to resize
-	//swapchain->ResizeBuffers(1, 800, 600, DXGI_FORMAT_B8G8R8A8_UNORM, DXGI_SWAP_CHAIN_FLAG_GDI_COMPATIBLE);
-	//swapchain->ResizeBuffers(1, 800, 600, DXGI_FORMAT_B8G8R8A8_UNORM, 0);
 	// get the address of the back buffer
 	ID3D11Texture2D *pBackBuffer;
 	swapchain->GetBuffer(0, __uuidof(ID3D11Texture2D), (LPVOID*)&pBackBuffer);
@@ -174,8 +161,6 @@ void RenderFrame(void)
 	//devcon->ClearRenderTargetView(backbuffer, D3DXCOLOR(0.0f, 0.2f, 0.4f, 1.0f));
 	devcon->ClearRenderTargetView(backbuffer, D3DXCOLOR(0.0f, 0.0f, 0.0f, 0.0f));
 
-
-
 	// Set shader texture resource in the pixel shader.
 
 	// do 3D rendering on the back buffer here
@@ -198,24 +183,13 @@ struct _msg {
 std::vector<_msg> msgs;
 LRESULT HookCallbackKb(int nCode, WPARAM wParam, LPARAM lParam)
 {
-	//return CallNextHookEx(_hookKb, nCode, wParam, lParam);
-	//if (nCode == HC_ACTION && wParam == WM_MOUSEMOVE) {
 	MSLLHOOKSTRUCT * pHookStruct = (MSLLHOOKSTRUCT *)lParam;
-	if (pHookStruct->flags & LLMHF_INJECTED)
-	{
-		pHookStruct->flags &= ~LLMHF_INJECTED;
-		//OutputDebugStringA("[+] Injected key detected\n");
-	}
-	//}
 	msgs.push_back({ 0,(DWORD)wParam,pHookStruct->mouseData,pHookStruct->pt.x, pHookStruct->pt.y });
 	return CallNextHookEx(_hookKb, nCode, wParam, lParam);
 }
 #include <thread>
 LRESULT HookCallbackKb2(int nCode, WPARAM wParam, LPARAM lParam) {
 	KBDLLHOOKSTRUCT* mhs = (KBDLLHOOKSTRUCT*)lParam;
-	//char proc[124];
-	//sprintf_s(proc, 124, "xxt! %i - %i / %i \n", mhs->vkCode,wParam,mhs->scanCode);
-	//OutputDebugStringA(proc);
 	if(wParam != WM_KEYUP)
 		msgs.push_back({ 0,(DWORD)wParam,mhs->vkCode,0,0 });
 	return CallNextHookEx(_hookKb2, nCode, wParam, lParam);
@@ -226,24 +200,18 @@ DWORD WINAPI KbThread(LPVOID lParam) {
 	MSG msg;
 	while (1) {//GetMessage(&msg,NULL,0,0)) {
 		PeekMessage(&msg, NULL, 0, 0, PM_NOREMOVE);
-		//std::this_thread::sleep_for(std::chrono::nanoseconds(1));//Sleep(1);
+		std::this_thread::sleep_for(std::chrono::nanoseconds(1));
 	}
 	return 0;
 }
 DWORD WINAPI MouseThread(LPVOID lParam) {
 	//init win hook
-	//if (bFullScreen) {
 		CreateThread(0, 0, KbThread, 0, 0, 0);
-		//OutputDebugStringA("1wnd proc!\n");
 		_hookKb = SetWindowsHookEx(WH_MOUSE_LL, HookCallbackKb, NULL, 0);
-		//_hookKb2 = SetWindowsHookEx(WH_KEYBOARD_LL, HookCallbackKb2, NULL, 0);
-		//sprintf_s(msg, 124, "ret: %p\n", _hookKb);
-		//OutputDebugStringA(msg);
-	//}
 	MSG msg;
-	while (1) {//GetMessage(&msg,NULL,0,0)) {
+	while (1) {
 		PeekMessageA(&msg, NULL, 0, 0, PM_NOREMOVE);
-		std::this_thread::sleep_for(std::chrono::nanoseconds(1));//Sleep(1);
+		std::this_thread::sleep_for(std::chrono::nanoseconds(1));
 	}
 	return 0;
 }
@@ -261,7 +229,6 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	//webWindow->webForm->Go("http://127.0.0.1/test.html");
 	char path[MAX_PATH];
 	GetCurrentDirectoryA(MAX_PATH,path);
-	//strcat_s(path, "\\test.html");
 	strcat_s(path, "\\canvas.html");
 	webWindow->webForm->Go(path);
 	ShowWindow(webWindow->hWndWebWindow, SW_HIDE);
@@ -280,7 +247,6 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 
 	RegisterClassEx(&wc);
 	RECT wr = { 0, 0, Width, Height };
-	//AdjustWindowRect(&wr, WS_OVERLAPPEDWINDOW, FALSE);
 	hWnd = CreateWindowExW(NULL,
 		L"WindowClass",
 		L"Our First Direct3D Program",
@@ -297,13 +263,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	ShowWindow(hWnd, nCmdShow);
 	SetMenu(_hwnd, NULL);
 	SetWindowLongPtr(_hwnd, GWL_STYLE, WS_VISIBLE);
-	SetWindowLongPtr(_hwnd, GWL_EXSTYLE, WS_EX_TOPMOST | WS_EX_LAYERED | WS_EX_TRANSPARENT); // WS_EX_NOACTIVATE  and WS_EX_TOOLWINDOW removes it from taskbar
-																							//SetWindowPos(hwndHiHjacked, HWND_TOPMOST, 0, 0, GetSystemMetrics(SM_CXSCREEN), GetSystemMetrics(SM_CYSCREEN), SWP_SHOWWINDOW); // DX fails to init if I do that here for some reason
-
-
-	//SetLayeredWindowAttributes(_hwnd, 0, 0, LWA_ALPHA);
-	//SetLayeredWindowAttributes(_hwnd, 0, RGB(0, 0, 0), LWA_COLORKEY);																		// Quick and dirty transparency
-																							//SetLayeredWindowAttributes(hwndHiHjacked, RGB(0, 0, 0), 0, LWA_COLORKEY);
+	SetWindowLongPtr(_hwnd, GWL_EXSTYLE, WS_EX_TOPMOST | WS_EX_LAYERED | WS_EX_TRANSPARENT); 
 
 	MARGINS margins = { -1 }; // With DWM
 	DwmExtendFrameIntoClientArea(_hwnd, &margins);
@@ -318,38 +278,20 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	while (1) {
 
 		if (PeekMessage(&msg, NULL, 0, 0, 1)) {
-			//PostMessageA(webWindow->hWndWebWindow, WM_PAINT, 0, 0);
-			//UpdateWindow(webWindow->hWndWebWindow);
 			if (msg.message == WM_QUIT) break;
 			if (msg.wParam == 0x00001008) {
 				//save hwnd
 				xwnd = msg.hwnd;
 			} 
-			if (msg.message == WM_TIMER) {
-				} else  //WM_TIMER ignores setinterval. but also removes focus..
-			if ( msg.message == WM_MOUSEMOVE) {
-				//msg.hwnd = 0;
-				//block..
-				//char _msg[124];
-				//sprintf_s(_msg, 124, "Block: %08X / %08X / %08X / %i / %i / %i\n", msg.hwnd,msg.wParam, msg.lParam,msg.pt.x,msg.pt.y,msg.message);
-				//OutputDebugStringA(_msg);
-			}
-			else {
-				//char _msg[124];
-				//sprintf_s(_msg, 124, "XXXXX: %08X / %08X / %08X / %i / %i / %i\n", msg.hwnd, msg.wParam, msg.lParam, msg.pt.x, msg.pt.y, msg.message);
-				//OutputDebugStringA(_msg);
+			if (msg.message == WM_TIMER) { //WM_TIMER ignores setinterval. but also removes focus..
+			} else if ( msg.message != WM_MOUSEMOVE) {
 				TranslateMessage(&msg);
 				DispatchMessage(&msg);
-
 			}
 		} else webWindow->webForm->RunJSFunction("Update();");
 		while (!msgs.empty()) {
 			auto m = msgs.back();
-			//if (m.code != WM_KEYUP) { //ignore key up
 				msg = { xwnd,m.code,m.wParam,MAKELPARAM(m.x,m.y),0,{m.x,m.y} };
-				//char _msg[124];
-				//sprintf_s(_msg, 124, "XHock: %08X / %08X / %08X / %i / %i / %i\n",msg.hwnd, msg.wParam, msg.lParam, msg.pt.x, msg.pt.y,msg.message);
-				//OutputDebugStringA(_msg);
 				TranslateMessage(&msg);
 				DispatchMessage(&msg);
 			//}
