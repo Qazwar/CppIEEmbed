@@ -3,3 +3,10 @@ Debug/
 *.vcproj.*.user
 *.suo
 *.ncb
+*.db
+*.opendb
+.vs/
+bin/CppIEEmbed.exe
+bin/CppIEEmbed.ipdb
+bin/CppIEEmbed.pdb
+bin/CppIEEmbed.iobj

@@ -11,6 +11,9 @@ JSObject::JSObject() : ref(0)
 	idMap.insert(std::make_pair(L"readfile", DISPID_USER_READFILE));
 	idMap.insert(std::make_pair(L"getevar", DISPID_USER_GETVAL));
 	idMap.insert(std::make_pair(L"setevar", DISPID_USER_SETVAL));
+	idMap.insert(std::make_pair(L"get_pos", DISPID_GET_POS));
+	idMap.insert(std::make_pair(L"get_posv", DISPID_GET_POSV));
+	idMap.insert(std::make_pair(L"log", DISPID_USER_LOG));
 }
 
 HRESULT STDMETHODCALLTYPE JSObject::QueryInterface(REFIID riid, void **ppv)
@@ -76,6 +79,8 @@ HRESULT STDMETHODCALLTYPE JSObject::GetIDsOfNames(REFIID riid,
 
 	return hr;
 }
+#include "webwindow.h"
+extern WebWindow* webWindow;
 
 HRESULT STDMETHODCALLTYPE JSObject::Invoke(DISPID dispIdMember, REFIID riid,
 	LCID lcid, WORD wFlags, DISPPARAMS *pDispParams, VARIANT *pVarResult,
@@ -94,9 +99,121 @@ HRESULT STDMETHODCALLTYPE JSObject::Invoke(DISPID dispIdMember, REFIID riid,
 		}
 
 		switch (dispIdMember) {
-			case DISPID_USER_EXECUTE: {
-				//LSExecute(NULL, args[0].c_str(), SW_NORMAL);
+		case DISPID_USER_EXECUTE: {
+			webWindow->webForm->RunJSFunction(args[0].c_str());
+			break;
+		}
+		case DISPID_USER_LOG: {
+			OutputDebugStringA(args[0].c_str());
+			break;
+		}
+		case DISPID_GET_POS: {
+			//https://stackoverflow.com/questions/45865768/iwebbrowser2-using-a-uint8array-filling-without-looping
+			POINT pos;
+			GetCursorPos(&pos);
 
+			pVarResult->vt = VT_I4;
+			pVarResult->lVal = MAKELONG(pos.x, pos.y);
+			hr = S_OK;
+			break;
+
+		}
+
+		case DISPID_GET_POSV: {
+			//https://stackoverflow.com/questions/45865768/iwebbrowser2-using-a-uint8array-filling-without-looping
+			POINT pos;
+			GetCursorPos(&pos);
+				//get league x/y
+				int x = pos.x;
+				int y = pos.y;
+
+				auto doc = webWindow->webForm->GetDoc();
+
+				if (doc == NULL) {
+					break;
+				}
+				IHTMLWindow2 *win = NULL;
+				doc->get_parentWindow(&win);
+				doc->Release();
+
+				if (win == NULL) {
+					break;
+				}
+
+				IDispatchEx *winEx;
+				win->QueryInterface(&winEx);
+				win->Release();
+
+				if (winEx == NULL) {
+					break;
+				}
+
+				DISPID did = 0;
+				LPOLESTR lpNames[] = { L"Uint32Array" };
+				hr = winEx->GetIDsOfNames(IID_NULL, lpNames, 1,
+					LOCALE_USER_DEFAULT, &did);
+				if (FAILED(hr))
+					return hr;
+				VARIANT self;
+				self.vt = VT_NULL;
+
+				VARIANT length;
+				length.vt = VT_I4;
+				length.lVal = 2;
+
+				VARIANT args[2] = { self, length };
+				DISPID named_args[1] = { DISPID_THIS };
+
+				DISPPARAMS params;
+				params.rgvarg = args;
+				params.rgdispidNamedArgs = named_args;
+				params.cArgs = 2;
+				params.cNamedArgs = 1;
+
+				VARIANT result;
+				result.vt = VT_EMPTY;
+				HRESULT hr = winEx->Invoke(
+					did, IID_NULL, LOCALE_USER_DEFAULT,
+					DISPATCH_METHOD, &params, &result, nullptr, nullptr
+				);
+				//OutputDebugStringA(result.vt == VT_DISPATCH && hr == S_OK ? "GOT ARRAY2!\n" : "BAD!\n");
+
+				// Variables used  
+				DISPPARAMS dp = { NULL, NULL, 0, 0 };
+				DISPID dispidNamed = DISPID_PROPERTYPUT;
+				DISPID dispID;
+				DISPID dispID2;
+				LPOLESTR ptName = L"0";
+				// Get DISPID for name passed  
+				auto pDisp = result.pdispVal;
+				hr = pDisp->GetIDsOfNames(IID_NULL, &ptName, 1, LOCALE_USER_DEFAULT, &dispID);
+				ptName = L"1";
+				hr = pDisp->GetIDsOfNames(IID_NULL, &ptName, 1, LOCALE_USER_DEFAULT, &dispID2);
+
+
+				// Build DISPPARAMS  
+				dp.cArgs = 1;
+				VARIANT pArgs[1];
+				pArgs[0].vt = VT_I4;
+				pArgs[0].lVal = x;
+				dp.rgvarg = pArgs;
+
+				VARIANT pvResult;
+				// Handle special-case for property-puts  
+				dp.cNamedArgs = 1;
+				dp.rgdispidNamedArgs = &dispidNamed;
+				hr = pDisp->Invoke(dispID, IID_NULL, LOCALE_SYSTEM_DEFAULT,
+					DISPATCH_PROPERTYPUT, &dp, &pvResult, NULL, NULL);
+
+				pArgs[0].vt = VT_I4;
+				pArgs[0].lVal = y;
+				hr = pDisp->Invoke(dispID2, IID_NULL, LOCALE_SYSTEM_DEFAULT,
+					DISPATCH_PROPERTYPUT, &dp, &pvResult, NULL, NULL);
+
+				//OutputDebugStringA("GOOD!\n");
+
+				pVarResult->vt = result.vt;
+				pVarResult->pdispVal = result.pdispVal;
 				break;
 			}
 			case DISPID_USER_WRITEFILE: {

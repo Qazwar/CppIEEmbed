@@ -13,6 +13,10 @@ private:
 	static const DISPID DISPID_USER_READFILE = DISPID_VALUE + 3;
 	static const DISPID DISPID_USER_GETVAL = DISPID_VALUE + 4;
 	static const DISPID DISPID_USER_SETVAL = DISPID_VALUE + 5;
+	static const DISPID DISPID_GET_POS = DISPID_VALUE + 6;
+	static const DISPID DISPID_GET_POSV = DISPID_VALUE + 7;
+	static const DISPID DISPID_USER_LOG = DISPID_VALUE + 8;
+	
 
 	std::map<std::wstring, DISPID> idMap;
 	long ref;

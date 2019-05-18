@@ -1,0 +1,68 @@
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<style>
+body {
+    top: 0;
+    left: 0;
+background-color: rgba(0,0,0,0);
+    margin: 0;
+    padding: 0;
+    }
+    .dd {
+background-color: rgba(0,0,0,0.4);
+    width: 140px;
+    height: 400px;
+        
+    }
+    p {
+        color: green;
+    }
+    .r:hover {
+        fill: green;
+    }
+    .class1 {
+fill:rgba(255,0,0,0.5);stroke:black;stroke-width:5;
+}
+.class1:hover {
+
+fill:rgba(0,200,0,0.5);
+}
+    .class2 {
+        background-color: red;
+    }
+    .class2:hover {
+        background-color: green;
+    }
+    .class2:focus {
+        background-color: yellow;
+    }
+</style>
+<body><svg width="400" height="180">
+    <svg  id="gg" >
+  <rect x="50" y="20" rx="20" ry="20" width="150" height="150" class="class1" onclick="JSObject.execute('click!')"
+ />
+        <text x="50" y="75" 
+        font-family="Verdana" 
+        font-size="55" style="fill: #0000ff"> HI!</text>
+        </svg>
+</svg>
+    <div id="dd" class="dd"><input class="class2">
+<h1 id="d" style="color: green;">Hello!</h1><div style="background-color: rgba(0,255,0,0.5); margin-left:10px; top: 20px;position: inherit; width: 20px;">HI<br>HI<br>HI<br>HI<br></div><div style="background-color: rgba(0,0,255,0.5); margin-left:10px; top: 20px;position: inherit; width: 20px;">AA<br>AA<br>AA<br>AA<br></div>
+        </div>
+<script
+  src="https://code.jquery.com/jquery-3.4.1.min.js"
+  integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo="
+  crossorigin="anonymous"></script>
+    <script>
+    document.body.style.width = window.innerWidth+'px';
+    document.body.style.height = window.innerHeight+'px';
+        function Update() {
+            $('#d').text(Date.now()%100);
+                           var p = JSObject.get_pos();
+                           $('#gg').attr('x',p & 0xFFFF);
+                           $('#gg').attr('y',p >> 16);
+        }
+    
+    
+    </script>
+</body>
+    

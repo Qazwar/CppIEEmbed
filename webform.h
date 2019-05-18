@@ -29,10 +29,8 @@ class WebForm : public IUnknown, TOleClientSite, TDispatch, TDocHostShowUI, TDoc
 #pragma warning(pop)
 private:
 	long ref;
-	unsigned int isnaving;    // bitmask: 4=haven't yet finished Navigate call, 2=haven't yet received DocumentComplete, 1=haven't yet received BeforeNavigate
 
 	UINT id;
-	IWebBrowser2 *ibrowser;   // Our pointer to the browser itself. Released in Close().
 	DWORD cookie;             // By this cookie shall the watcher be known
 
 	bool hasScrollbars;       // This is read from WS_VSCROLL|WS_HSCROLL at WM_CREATE
@@ -41,9 +39,11 @@ private:
 
 	WebformDispatchHandler *dispatchHandler;
 
-	IHTMLDocument2 *GetDoc();
 public:
+	unsigned int isnaving;    // bitmask: 4=haven't yet finished Navigate call, 2=haven't yet received DocumentComplete, 1=haven't yet received BeforeNavigate
+	IWebBrowser2 *ibrowser;   // Our pointer to the browser itself. Released in Close().
 	HWND hWnd;
+	IHTMLDocument2 *GetDoc();
 
 	WebForm(WebformDispatchHandler *wdh);
 	~WebForm();
